@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const lessonSchema = new mongoose.Schema({
-  name: { type: String, default: "Sample Lesson" },
-  description: { type: String, default: "Sample Lesson Description" },
+  name: { type: String, default: "Lesson" },
+  description: { type: String, default: "Lesson Description" },
   module: { type: String },
 });
  
