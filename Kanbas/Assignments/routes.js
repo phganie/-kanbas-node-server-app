@@ -1,50 +1,69 @@
-import db from "../Database/index.js";
+import * as dao from "./dao.js"; 
 
 export default function AssignmentsRoutes(app) {
-  app.delete("/api/assignments/:aid", (req, res) => {
-    const { aid } = req.params;
-    db.assignments = db.assignments.filter((a) => a._id !== aid);
-    res.sendStatus(200);
-  });
-
-  app.post("/api/courses/:cid/assignments", (req, res) => {
-    const { cid } = req.params;
-    const newAssignment = {
-      ...req.body,
-      course: cid,
-      _id: new Date().getTime().toString(),
-    };
-    db.assignments.push(newAssignment);
-    res.send(newAssignment);
-  });
-
-  app.get("/api/courses/:cid/assignments", (req, res) => {
-    const { cid } = req.params;
-    const assignments = db.assignments.filter((a) => a.course === cid);
-    res.json(assignments);
-  });
-
-  app.get("/api/courses/:cid/assignments/:aid", (req, res) => {
-    const { cid, aid } = req.params;
-    const assignment = db.assignments.find((a) => a._id === aid && a.course === cid);
-    if (assignment) {
-      res.json(assignment);
-    } else {
-      res.sendStatus(404);
+  const createAssignment = async (req, res) => {
+    try {
+      const { cid } = req.params;
+      const newAssignment = { ...req.body, course: cid };
+      const assignment = await dao.createAssignment(newAssignment);
+      res.status(201).json(assignment);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
     }
-  });
+  };
 
-  app.put("/api/assignments/:aid", (req, res) => {
-    const { aid } = req.params;
-    const assignmentIndex = db.assignments.findIndex((a) => a._id === aid);
-    if (assignmentIndex !== -1) {
-      db.assignments[assignmentIndex] = {
-        ...db.assignments[assignmentIndex],
-        ...req.body,
-      };
-      res.sendStatus(204);
-    } else {
-      res.sendStatus(404);
+  const deleteAssignment = async (req, res) => {
+    try {
+      const { aid } = req.params;
+      const status = await dao.deleteAssignment(aid);
+      res.json(status);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
     }
-  });
+  };
+
+  const findAssignmentsForCourse = async (req, res) => {
+    try {
+      const { cid } = req.params;
+      const assignments = await dao.findAssignmentByCourseId(cid);
+      res.json(assignments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  const findAssignmentById = async (req, res) => {
+    try {
+      const { aid } = req.params;
+      const assignment = await dao.findAssignmentById(aid);
+      if (assignment) {
+        res.json(assignment);
+      } else {
+        res.sendStatus(404);
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  const updateAssignment = async (req, res) => {
+    try {
+      const { aid } = req.params;
+      const status = await dao.updateAssignment(aid, req.body);
+      res.json(status);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  app.post("/api/courses/:cid/assignments", createAssignment);
+  app.get("/api/courses/:cid/assignments", findAssignmentsForCourse);
+  app.get("/api/courses/:cid/assignments/:aid", findAssignmentById);
+  app.put("/api/assignments/:aid", updateAssignment);
+  app.delete("/api/assignments/:aid", deleteAssignment);
 }

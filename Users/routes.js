@@ -13,7 +13,6 @@ export default function UserRoutes(app) {
 
   };
 
-  
   const findAllUsers = async (req, res) => {
     const { role, name } = req.query;
       if (role) {
